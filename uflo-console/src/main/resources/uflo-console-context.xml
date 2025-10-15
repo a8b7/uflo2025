@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	">
+	<import resource="classpath:uflo-context-configs.xml" />
+	
+	<context:property-placeholder location="classpath:uflo-console-configure.properties" ignore-unresolvable="true"/>
+	
+	<bean id="uflo.console.resourceLoaderServletHandler"
+		class="com.bstek.uflo.console.handler.impl.res.ResourceLoaderServletHandler" />
+	<bean id="uflo.console.todoServletHandler"
+		class="com.bstek.uflo.console.handler.impl.todo.TodoServletHandler">
+		<property name="taskService" ref="uflo.taskService" />
+		<property name="historyService" ref="uflo.historyService"/>
+	</bean>
+	
+	<bean id="uflo.designerServletHandler" class="com.bstek.uflo.console.handler.impl.designer.DesignerServletHandler">
+		<property name="processService" ref="uflo.processService"/>
+	</bean>
+
+	<bean id="uflo.console.centralServletHandler" class="com.bstek.uflo.console.handler.impl.central.CentralServletHandler">
+		<property name="taskService" ref="uflo.taskService" />
+		<property name="processService" ref="uflo.processService" />
+		<property name="historyService" ref="uflo.historyService" />
+	</bean>
+	
+	<bean id="uflo.console.defaultTaskDiagramInfoProvider" class="com.bstek.uflo.console.handler.impl.diagram.DefaultTaskDiagramInfoProvider">
+		<property name="disableDefaultTaskDiagramInfoProvider" value="${uflo.disableDefaultTaskDiagramInfoProvider}"/>
+	</bean>
+	
+	<bean id="uflo.console.calendarServletHandler" class="com.bstek.uflo.console.handler.impl.calendar.CalendarServletHandler">
+		<property name="commandService" ref="uflo.commandService"/>
+	</bean>
+
+	<bean id="uflo.console.deployServletHandler"
+		class="com.bstek.uflo.console.handler.impl.deploy.DeployServletHandler">
+		<property name="processService" ref="uflo.processService"/>
+		<property name="debug" value="${uflo.debug}"/>
+	</bean>
+	
+	<bean id="uflo.console.assigneeProviderListServletHandler" class="com.bstek.uflo.console.handler.impl.list.AssigneeProviderListServletHandler">
+		<property name="debug" value="${uflo.debug}"/>
+	</bean>
+	<bean id="uflo.console.calendarProviderListServletHandler" class="com.bstek.uflo.console.handler.impl.list.CalendarProviderListServletHandler">
+		<property name="debug" value="${uflo.debug}"/>
+	</bean>
+	<bean id="uflo.console.handlerListServletHandler" class="com.bstek.uflo.console.handler.impl.list.HandlerListServletHandler">
+		<property name="debug" value="${uflo.debug}"/>
+	</bean>
+	
+	<bean id="uflo.defaultFileProcessProvider" class="com.bstek.uflo.console.provider.DefaultFileProcessProvider">
+		<property name="fileStoreDir" value="${uflo.defaultFileStoreDir}"/>
+		<property name="disabled" value="${uflo.disableDefaultFileProcessProvider}"/>
+	</bean>
+	
+	<bean id="uflo.processProviderUtils" class="com.bstek.uflo.console.provider.ProcessProviderUtils" />
+
+	<bean class="com.bstek.uflo.console.handler.impl.diagram.ProcessDiagramServletHandler">
+		<property name="processService" ref="uflo.processService"/>
+		<property name="taskService" ref="uflo.taskService"/>
+		<property name="historyService" ref="uflo.historyService"/>
+
+		<property name="showTime" value="${uflo.diagram.showTime}" />
+		<property name="passedNodeBgcolor" value="${uflo.diagram.passedNodeBgcolor}"/>
+		<property name="passedNodeFontColor" value="${uflo.diagram.passedNodeFontColor}"/>
+		<property name="passedNodeFontSize" value="${uflo.diagram.passedNodeFontSize}"/>
+		<property name="passedNodeBorderColor" value="${uflo.diagram.passedNodeBorderColor}"/>
+		<property name="passedConnectionColor" value="${uflo.diagram.passedConnectionColor}"/>
+		<property name="passedConnectionFontColor" value="${uflo.diagram.passedConnectionFontColor}"/>
+		<property name="passedConnectionFontSize" value="${uflo.diagram.passedConnectionFontSize}"/>
+		<property name="multiCurrentNodeBgcolor" value="${uflo.diagram.multiCurrentNodeBgcolor}"/>
+		<property name="multiCurrentNodeFontColor" value="${uflo.diagram.multiCurrentNodeFontColor}"/>
+		<property name="multiCurrentNodeFontSize" value="${uflo.diagram.multiCurrentNodeFontSize}"/>
+		<property name="multiCurrentNodeBorderColor" value="${uflo.diagram.multiCurrentNodeBorderColor}"/>
+		<property name="connectionColor" value="${uflo.diagram.connectionColor}"/>
+		<property name="connectionFontColor" value="${uflo.diagram.connectionFontColor}"/>
+		<property name="connectionFontSize" value="${uflo.diagram.connectionFontSize}"/>
+		<property name="nodeBgcolor" value="${uflo.diagram.nodeBgcolor}"/>
+		<property name="nodeFontColor" value="${uflo.diagram.nodeFontColor}"/>
+		<property name="nodeFontSize" value="${uflo.diagram.nodeFontSize}"/>
+		<property name="nodeBorderColor" value="${uflo.diagram.nodeBorderColor}"/>
+		<property name="currentNodeBgcolor" value="${uflo.diagram.currentNodeBgcolor}"/>
+		<property name="currentNodeFontColor" value="${uflo.diagram.currentNodeFontColor}"/>
+		<property name="currentNodeFontSize" value="${uflo.diagram.currentNodeFontSize}"/>
+		<property name="currentNodeBorderColor" value="${uflo.diagram.currentNodeBorderColor}"/>
+	</bean>
+</beans>

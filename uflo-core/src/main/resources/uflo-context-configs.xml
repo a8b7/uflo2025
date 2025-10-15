@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		">
+	<bean id="uflo.processValidator" class="com.bstek.uflo.deploy.validate.impl.ProcessValidator" />
+
+	<bean id="uflo.environmentUtils" class="com.bstek.uflo.utils.EnvironmentUtils" />
+
+	<bean id="uflo.processCache" class="com.bstek.uflo.env.impl.MemoryProcessCache" />
+
+
+	<bean id="uflo.commandService" class="com.bstek.uflo.command.impl.SpringTransactionCommandService" depends-on="uflo.environmentUtils">
+		<property name="entityManagerFactory" ref="entityManagerFactory"/>
+	</bean>
+
+	<bean id="uflo.calendarService" class="com.bstek.uflo.service.impl.CalendarServiceImpl">
+		<property name="commandService" ref="uflo.commandService" />
+	</bean>
+
+	<bean id="uflo.ufloCalendarProvider" class="com.bstek.uflo.process.node.reminder.impl.UfloCalendarProvider">
+		<property name="calendarService" ref="uflo.calendarService" />
+	</bean>
+
+	<bean id="uflo.props" class="com.bstek.uflo.UfloPropertyPlaceholderConfigurer" abstract="true">
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+	</bean>
+
+	<bean id="uflo.processDeployer" class="com.bstek.uflo.deploy.impl.DefaultProcessDeployer">
+		<property name="commandService" ref="uflo.commandService"/>
+		<property name="processValidator" ref="uflo.processValidator"/>
+	</bean>
+
+	<bean id="uflo.businessCalendar" class="com.bstek.uflo.process.node.calendar.BusinessCalendar">
+		<property name="businessDayHours" value="${uflo.businessDayHours}" />
+	</bean>
+
+	<bean id="uflo.processService" class="com.bstek.uflo.service.impl.DefaultProcessService">
+		<property name="commandService" ref="uflo.commandService" />
+		<property name="processDeployer" ref="uflo.processDeployer" />
+	</bean>
+
+	<bean id="uflo.taskService" class="com.bstek.uflo.service.impl.DefaultTaskService">
+		<property name="commandService" ref="uflo.commandService"/>
+		<property name="processService" ref="uflo.processService"/>
+		<property name="historyService" ref="uflo.historyService"/>
+	</bean>
+	<bean id="uflo.historyService" class="com.bstek.uflo.service.impl.DefaultHistoryService">
+		<property name="commandService" ref="uflo.commandService"/>
+	</bean>
+
+	<bean id="uflo.expressionContext" class="com.bstek.uflo.expr.impl.ExpressionContextImpl" depends-on="uflo.environmentUtils">
+		<property name="processService" ref="uflo.processService"/>
+	</bean>
+
+	<bean id="uflo.identityService" class="com.bstek.uflo.service.impl.DefaultIdentityService"></bean>
+
+	<bean id="uflo.deptAssigneeProvider" class="com.bstek.uflo.process.assign.impl.DeptAssigneeProvider">
+		<property name="identityService" ref="uflo.identityService"/>
+		<property name="disabledDeptAssigneeProvider" value="${uflo.disabledDeptAssigneeProvider}"/>
+	</bean>
+	<bean id="uflo.userAssigneeProvider" class="com.bstek.uflo.process.assign.impl.UserAssigneeProvider">
+		<property name="identityService" ref="uflo.identityService"/>
+		<property name="disabledUserAssigneeProvider" value="${uflo.disabledUserAssigneeProvider}"/>
+	</bean>
+
+	<bean id="uflo.schedulerService" class="com.bstek.uflo.service.impl.SchedulerServiceImpl" depends-on="uflo.processParser" destroy-method="destroy">
+		<property name="taskService" ref="uflo.taskService"/>
+		<property name="processService" ref="uflo.processService"/>
+		<property name="threadCount" value="${uflo.jobThreadCount}"/>
+		<property name="makeSchedulerThreadDaemon" value="${uflo.makeSchedulerThreadDaemon}"/>
+		<property name="enableScanReminderJob" value="${uflo.enableScanReminderJob}"/>
+	</bean>
+
+	<bean id="uflo.instanceDetection" class="com.bstek.uflo.heartbeat.InstanceDetection" depends-on="uflo.environmentUtils">
+		<property name="disableScheduler" value="${uflo.disableScheduler}"/>
+		<property name="instanceNames" value="${uflo.clusterInstanceNames}"/>
+		<property name="schedulerService" ref="uflo.schedulerService"/>
+	</bean>
+
+	<bean id="uflo.idGenerator" class="com.bstek.uflo.utils.IDGenerator">
+		<property name="commandService" ref="uflo.commandService"/>
+		<property name="blockSize" value="${uflo.idBlockSize}"/>
+	</bean>
+
+
+	<bean id="uflo.processParser" class="com.bstek.uflo.deploy.parse.impl.ProcessParser" />
+	<bean id="uflo.startParser" class="com.bstek.uflo.deploy.parse.impl.StartParser"></bean>
+	<bean id="uflo.taskParser" class="com.bstek.uflo.deploy.parse.impl.TaskParser"></bean>
+	<bean id="uflo.foreachParser" class="com.bstek.uflo.deploy.parse.impl.ForeachParser"></bean>
+	<bean id="uflo.decisionParser" class="com.bstek.uflo.deploy.parse.impl.DecisionParser"></bean>
+	<bean id="uflo.actionParser" class="com.bstek.uflo.deploy.parse.impl.ActionParser"></bean>
+	<bean id="uflo.swimlaneParser" class="com.bstek.uflo.deploy.parse.impl.SwimlaneParser"></bean>
+	<bean id="uflo.subprocessParser" class="com.bstek.uflo.deploy.parse.impl.SubprocessParser"></bean>
+	<bean id="uflo.joinParser" class="com.bstek.uflo.deploy.parse.impl.JoinParser"></bean>
+	<bean id="uflo.endParser" class="com.bstek.uflo.deploy.parse.impl.EndParser"></bean>
+	<bean id="uflo.sequenceFlowParser" class="com.bstek.uflo.deploy.parse.impl.SequenceFlowParser"></bean>
+	<bean id="uflo.forkParser" class="com.bstek.uflo.deploy.parse.impl.ForkParser"></bean>
+</beans>

@@ -1,0 +1,19 @@
+*/target/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.out/
+
+# Environment files
+.env*
+!.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

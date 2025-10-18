@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2017 Bstek
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -22,8 +22,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.bstek.uflo.command.Command;
@@ -40,46 +40,56 @@ import com.bstek.uflo.utils.EnvironmentUtils;
  * @author Jacky.gao
  * @since 2013年7月30日
  */
-public class SpringTransactionCommandService implements CommandService,ApplicationContextAware {
-	private ContextImpl context;
-	private SessionFactory sessionFactory;
-	private EntityManagerFactory entityManagerFactory;
-	private PlatformTransactionManager platformTransactionManager;
-	private int springPropagationBehaviour = TransactionDefinition.PROPAGATION_REQUIRED;
-	private int newSpringPropagationBehaviour = TransactionDefinition.PROPAGATION_REQUIRES_NEW;
-	public <T> T executeCommand(final Command<T> command) {
-		TransactionTemplate template = new TransactionTemplate(platformTransactionManager);
-	    template.setPropagationBehavior(springPropagationBehaviour);
-	    return template.execute(status -> command.execute(context));
-	}
-	
-	public <T> T executeCommandInNewTransaction(final Command<T> command) {
-		TransactionTemplate template = new TransactionTemplate(platformTransactionManager);
-		template.setPropagationBehavior(newSpringPropagationBehaviour);
-		return template.execute(status -> command.execute(context));
-	}
-	
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.platformTransactionManager=EnvironmentUtils.getEnvironment().getPlatformTransactionManager();
-		if(this.platformTransactionManager==null){
-			throw new RuntimeException("The "+EnvironmentProvider.class.getName()+" implements class's method 'getPlatformTransactionManager' can not return null.");
-		}
-		this.sessionFactory=EnvironmentUtils.getEnvironment().getSessionFactory();
-		if(this.sessionFactory==null){
-			throw new RuntimeException("The "+EnvironmentProvider.class.getName()+" implements class's method 'getSessionFactory' can not return null.");
-		}
-		context=new ContextImpl();
-		context.setCommandService(this);
-		context.setApplicationContext(applicationContext);
-		context.setSessionFactory(sessionFactory);
-		context.setEntityManagerFactory(entityManagerFactory);
-		context.setProcessService((ProcessService)applicationContext.getBean(ProcessService.BEAN_ID));
-		context.setExpressionContext((ExpressionContext)applicationContext.getBean(ExpressionContext.BEAN_ID));
-		context.setIdentityService((IdentityService)applicationContext.getBean(IdentityService.BEAN_ID));
-		context.setTaskService((TaskService)applicationContext.getBean(TaskService.BEAN_ID));
-	}
+public class SpringTransactionCommandService implements CommandService, ApplicationContextAware {
+    private ContextImpl context;
+    private SessionFactory sessionFactory;
+    private EntityManagerFactory entityManagerFactory;
+    private PlatformTransactionManager platformTransactionManager;
+    private int springPropagationBehaviour = TransactionDefinition.PROPAGATION_REQUIRED;
+    private int newSpringPropagationBehaviour = TransactionDefinition.PROPAGATION_REQUIRES_NEW;
 
-      public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
-	    this.entityManagerFactory = entityManagerFactory;
-	 }
+    public <T> T executeCommand(final Command<T> command) {
+        TransactionTemplate template = new TransactionTemplate(platformTransactionManager);
+        template.setPropagationBehavior(springPropagationBehaviour);
+        return template.execute(status -> command.execute(context));
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public <T> T executeCommandInNewTransaction(final Command<T> command) {
+        return command.execute(context);
+    }
+
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.platformTransactionManager = EnvironmentUtils.getEnvironment().getPlatformTransactionManager();
+        if (this.platformTransactionManager == null) {
+            // 在现代Spring Boot环境中，PlatformTransactionManager由Spring自动管理
+            // 如果为null，从applicationContext中获取
+            try {
+                this.platformTransactionManager = applicationContext.getBean(PlatformTransactionManager.class);
+                // 如果找到自动配置的事务管理器，可以继续使用传统事务处理
+            } catch (BeansException e) {
+                // 如果没有自动配置的事务管理器，抛出更明确的错误信息
+                throw new RuntimeException("The " + EnvironmentProvider.class.getName() + " implementation returned null for getPlatformTransactionManager(), " +
+                        "and no PlatformTransactionManager was found in the Spring context. " +
+                        "In modern Spring Boot environments, consider using ModernCommandService instead.");
+            }
+        }
+        this.sessionFactory = EnvironmentUtils.getEnvironment().getSessionFactory();
+        if (this.sessionFactory == null) {
+            throw new RuntimeException("The " + EnvironmentProvider.class.getName() + " implements class's method 'getSessionFactory' can not return null.");
+        }
+        context = new ContextImpl();
+        context.setCommandService(this);
+        context.setApplicationContext(applicationContext);
+        context.setSessionFactory(sessionFactory);
+        context.setEntityManagerFactory(entityManagerFactory);
+        context.setProcessService((ProcessService) applicationContext.getBean(ProcessService.BEAN_ID));
+        context.setExpressionContext((ExpressionContext) applicationContext.getBean(ExpressionContext.BEAN_ID));
+        context.setIdentityService((IdentityService) applicationContext.getBean(IdentityService.BEAN_ID));
+        context.setTaskService((TaskService) applicationContext.getBean(TaskService.BEAN_ID));
+    }
+
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory) {
+        this.entityManagerFactory = entityManagerFactory;
+    }
 }

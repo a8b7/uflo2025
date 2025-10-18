@@ -27,6 +27,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -38,7 +39,7 @@ import com.bstek.uflo.deploy.parse.impl.ProcessParser;
 import com.bstek.uflo.deploy.validate.ProcessValidateException;
 import com.bstek.uflo.deploy.validate.impl.ProcessValidator;
 import com.bstek.uflo.model.ProcessDefinition;
-import com.bstek.uflo.utils.IDGenerator;
+import com.bstek.uflo.utils.ModernIDGenerator;
 
 /**
  * @author Jacky.gao
@@ -48,9 +49,12 @@ public class DefaultProcessDeployer implements ProcessDeployer{
 	private DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	private ProcessValidator processValidator;
 	private CommandService commandService;
+	
+	@Autowired
+	private ModernIDGenerator idGenerator;
 	public ProcessDefinition deploy(InputStream inputStream) {
 		ProcessDefinition process=null;
-		long processId=IDGenerator.getInstance().nextId();
+		long processId = idGenerator.nextId();
 		if(inputStream instanceof ZipInputStream){
 			//表示通过zip打包上传的流程模版文件，其中可能包含流程图片文件(png格式)
 			ZipInputStream zipInputStream=(ZipInputStream)inputStream;

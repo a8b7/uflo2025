@@ -43,6 +43,11 @@ public class EnvironmentUtils implements ApplicationContextAware{
 		return provider.getSessionFactory();
 	}
 	
+	/**
+	 * 获取平台事务管理器
+	 * 注意：在现代Spring Boot环境中，此方法可能返回null，
+	 * 因为事务管理由Spring Boot自动处理
+	 */
 	public PlatformTransactionManager getPlatformTransactionManager(){
 		return provider.getPlatformTransactionManager();
 	}

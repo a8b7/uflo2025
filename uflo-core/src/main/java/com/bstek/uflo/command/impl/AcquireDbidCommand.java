@@ -36,8 +36,6 @@ public class AcquireDbidCommand implements Command<Long>{
 	public AcquireDbidCommand(int blockSize){
 		this.blockSize=blockSize;
 	}
-	@SuppressWarnings("unchecked")
-	@Transactional
 	public Long execute(Context context) {
 		long nextId=0;
 		Session session=context.getSession();
@@ -47,6 +45,7 @@ public class AcquireDbidCommand implements Command<Long>{
 		List<ContextProperty> list = query.list();
 		if(list.size()>0){
 			ContextProperty prop=list.get(0);
+
 			nextId=Long.valueOf(prop.getValue());
 			prop.setValue(String.valueOf(nextId+blockSize));
 			session.update(prop);

@@ -46,7 +46,6 @@ public class AddCountersignCommand implements Command<Task> {
 		this.task=task;
 		this.username=username;
 	}
-	@Transactional
 	public Task execute(Context context) {
 		if(!TaskType.Countersign.equals(task.getType())){
 			throw new IllegalArgumentException("Task "+task.getId()+" is not a countersign task.");

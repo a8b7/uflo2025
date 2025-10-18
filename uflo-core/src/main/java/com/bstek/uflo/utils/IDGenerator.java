@@ -26,6 +26,8 @@ import org.springframework.context.ApplicationContextAware;
 
 import com.bstek.uflo.command.CommandService;
 import com.bstek.uflo.command.impl.AcquireDbidCommand;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jacky.gao
@@ -40,7 +42,6 @@ public class IDGenerator implements ApplicationContextAware{
 	private long lastId=-1;
 	private int blockSize=5000;
 	private int maxAttempts = 5;
-
 	public synchronized long nextId() {
 		if (lastId < nextId) {
 			for (int attempts = maxAttempts; (attempts > 0); attempts--) {

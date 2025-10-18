@@ -19,6 +19,12 @@ import org.hibernate.SessionFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
+ * 环境提供者接口，提供流程引擎运行所需的环境信息
+ * 
+ * 在传统的Spring环境中，实现类需要提供SessionFactory和PlatformTransactionManager
+ * 在现代Spring Boot环境中，PlatformTransactionManager由Spring Boot自动管理，
+ * 实现类可以返回null，而SessionFactory可以通过EntityManagerFactory获取
+ * 
  * @author Jacky.gao
  * @since 2013年9月17日
  */
@@ -29,6 +35,8 @@ public interface EnvironmentProvider {
 	SessionFactory getSessionFactory();
 	/**
 	 * @return 返回与当前SessionFactory绑定的PlatformTransactionManager对象
+	 * 
+	 * 注意：在现代Spring Boot环境中，建议返回null，让Spring Boot自动管理事务
 	 */
 	PlatformTransactionManager getPlatformTransactionManager();
 	/**
